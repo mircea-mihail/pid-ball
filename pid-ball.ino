@@ -10,7 +10,7 @@ SR04 sensor = SR04(ultrasonicEcho, ultrasonicTrig);
 const int maxh = 66, minh = 153, midh = 127;
 const int reactionTime = 20, conversionVal = 5.64;
 const int minl = 0, maxl = 46;
-const int avgRate = 5; 
+const int avgRate = 10; 
 int v[avgRate];
 
 void getInitialV(){
@@ -94,7 +94,7 @@ double servoSafety(double val){
   return val;
 }
 
-const int acceptedError = 1;
+const int acceptedError = 2;
 
 double feedBack(){
   if(e > acceptedError){
@@ -110,14 +110,23 @@ double feedBack(){
   }
 }
 
+const int derivatorFactor = 0.125;
+double derivator(){
+  return e * 0.2;
+}
+
 void loop() {
 
   updateV();
+  //though averageing the y might actually make my 
+  //feedback an integrator as averaging it makes it take into account previous information.
+  //as such i might end up not using a proportional part as it would be too twitchy?
+  //not sure, will see after adding a derivator
   y = avgV();
   r = midl();
   e = r - y;
 
-  servo.write(feedBack());
+  servo.write(feedBack() + derivator());
   // servo.write(127);
   // potManualControl();
   // Serial.println(analogRead(pot)/conversionVal);
